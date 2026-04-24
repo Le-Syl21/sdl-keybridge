@@ -1885,11 +1885,18 @@ pub const LAYOUT_LINUX_JA_JIS: Layout = mk_layout(
 );
 
 // ==========================================================================
+// CLDR-generated layouts (build.rs emits $OUT_DIR/cldr_layouts.rs from
+// data/cldr-43/keyboards/).
+// ==========================================================================
+
+include!(concat!(env!("OUT_DIR"), "/cldr_layouts.rs"));
+
+// ==========================================================================
 // Registry
 // ==========================================================================
 
-/// Every layout shipped in this build.
-pub const LAYOUTS: &[&Layout] = &[
+/// Hand-curated layouts shipped directly in source.
+pub const HAND_CODED_LAYOUTS: &[&Layout] = &[
     // English
     &LAYOUT_MAC_EN_US_QWERTY,
     &LAYOUT_WIN_EN_US_QWERTY,
@@ -1968,14 +1975,31 @@ pub const LAYOUTS: &[&Layout] = &[
     &LAYOUT_LINUX_JA_JIS,
 ];
 
-/// Look up a layout by its id (e.g. `"linux/fr-t-k0-azerty"`).
+/// Look up a layout by its id (e.g. `"linux/fr-t-k0-azerty"`). Checks
+/// hand-curated layouts first, then falls through to the CLDR-generated
+/// set — so a hand-coded layout always wins over an auto-generated one
+/// sharing the same id.
 pub fn get_layout(id: &str) -> Option<&'static Layout> {
-    LAYOUTS.iter().find(|l| l.id == id).copied()
+    HAND_CODED_LAYOUTS
+        .iter()
+        .find(|l| l.id == id)
+        .or_else(|| CLDR_LAYOUTS.iter().find(|l| l.id == id))
+        .copied()
 }
 
-/// Every layout available in this build.
+/// Every layout shipped in this build — the concatenation of
+/// [`HAND_CODED_LAYOUTS`] and [`CLDR_LAYOUTS`], allocated once on first
+/// call and returned as a borrowed slice.
 pub fn all_layouts() -> &'static [&'static Layout] {
-    LAYOUTS
+    use std::sync::OnceLock;
+    static COMBINED: OnceLock<Vec<&'static Layout>> = OnceLock::new();
+    COMBINED
+        .get_or_init(|| {
+            let mut v: Vec<&'static Layout> = HAND_CODED_LAYOUTS.to_vec();
+            v.extend(CLDR_LAYOUTS.iter().copied());
+            v
+        })
+        .as_slice()
 }
 
 /// Compute the canonical SDL keycode for a [`LayoutKey`] at its base

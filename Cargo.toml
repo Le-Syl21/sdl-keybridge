@@ -1,6 +1,6 @@
 [package]
 name = "sdl-keybridge"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Le-Syl21 <sylvain.gargasson@gmail.com>"]
@@ -13,11 +13,16 @@ keywords = ["sdl", "keyboard", "layout", "i18n", "rebind"]
 categories = ["game-development", "internationalization", "os"]
 include = [
     "src/**/*.rs",
+    "build.rs",
+    "data/cldr-43/keyboards/**/*.xml",
+    "data/cldr-43/LICENSE.txt",
+    "data/cldr-43/README-keyboards.md",
     "Cargo.toml",
     "README.md",
     "LICENSE-MIT",
     "LICENSE-APACHE",
 ]
+build = "build.rs"
 
 [features]
 default = ["en"]
@@ -54,6 +59,9 @@ vi = []
 "zh-hant" = []
 
 [dependencies]
+
+[build-dependencies]
+quick-xml = { version = "0.38", default-features = false }
 
 [dev-dependencies]
 

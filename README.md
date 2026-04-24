@@ -126,31 +126,37 @@ sdl-keybridge = { version = "0.1", features = ["fr", "de", "ja"] }
 
 ## Layouts
 
-v0.2 ships **22 hand-curated layout families × 3 platforms each = 66
-layouts**. Layout ids follow the BCP 47 + CLDR keyboard extension
-convention (`<platform>/<lang>-t-k0-<variant>`).
+v0.3 ships **667 layouts** :
 
-| Family | Languages / regions |
-| --- | --- |
-| QWERTY (US, UK, International) | English |
-| Dvorak, Colemak | English |
-| AZERTY, BÉPO, CSA | French (FR, CA) |
-| QWERTZ | German |
-| Spanish, Latin American | `es`, `es-419` |
-| Italian, Portuguese (PT + BR ABNT2) | `it`, `pt`, `pt-BR` |
-| Swedish, Finnish, Norwegian, Danish | Nordic |
-| Polish Programmers | `pl` |
-| JCUKEN | Russian |
-| Turkish Q | `tr` |
-| JIS | Japanese |
+- **66 hand-curated** (22 families × 3 platforms) — the pragmatic
+  baseline covering the 20 most-used layouts worldwide.
+- **601 generated from [Unicode CLDR 43](https://github.com/unicode-org/cldr/tree/release-43/keyboards)**
+  at build time — the full legacy LDML-KEYBOARD 2.x set across Android
+  (175), ChromeOS (55), macOS (137), Windows (209), plus a handful of
+  platform-neutral entries (25). CLDR 44+ migrated to a new 3.0 format
+  still mostly unpopulated; CLDR 43 remains the canonical historical
+  source.
+
+Layout ids follow `<platform>/<lang>-t-k0-<variant>`. Hand-coded
+layouts take precedence over CLDR-generated ones when the ids
+collide (so the hand-curated AZERTY / QWERTZ / JCUKEN variants stay
+authoritative).
+
+Hand-coded highlights: US QWERTY, UK QWERTY, US International, Dvorak,
+Colemak, French AZERTY/BÉPO/CSA, German QWERTZ, Spanish (ES + LatAm),
+Italian, Portuguese (PT + BR ABNT2), Nordic quartet (SV/FI/NB/DA),
+Polish Programmers, Russian JCUKEN, Turkish Q, Japanese JIS.
 
 Run `cargo run --example inspect --all-features -- ? scancode 0` for
-the full list of layout ids shipped in the build.
+the full list of layout ids in this build.
 
-Full [Unicode CLDR keyboard data](https://github.com/unicode-org/cldr/tree/main/keyboards)
-import was once considered for bulk scale, but the new CLDR 3.0 format
-currently covers only a handful of niche layouts — hand-curated tables
-remain the pragmatic source.
+### Regenerating from fresh CLDR data
+
+The build script reads `data/cldr-43/keyboards/**/*.xml`. To switch
+source (e.g. drop in a newer CLDR release), replace that directory and
+rebuild — the generated output regenerates automatically. Parser lives
+in `build.rs`; ISO-to-scancode mapping is the `ISO_MAP` table at the
+top of that file.
 
 ## What this crate will *not* do (non-goals)
 
