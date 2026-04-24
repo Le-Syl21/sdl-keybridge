@@ -126,19 +126,31 @@ sdl-keybridge = { version = "0.1", features = ["fr", "de", "ja"] }
 
 ## Layouts
 
-v0.1 ships hand-curated layouts for US QWERTY, French AZERTY, German
-QWERTZ, Russian JCUKEN and US Dvorak — each available for macOS,
-Windows and Linux. Layout ids follow the BCP 47 + CLDR keyboard
-extension convention:
+v0.2 ships **22 hand-curated layout families × 3 platforms each = 66
+layouts**. Layout ids follow the BCP 47 + CLDR keyboard extension
+convention (`<platform>/<lang>-t-k0-<variant>`).
 
-- `mac/en-US-t-k0-qwerty`, `windows/en-US-t-k0-qwerty`, `linux/en-US-t-k0-qwerty`
-- `mac/fr-t-k0-azerty`, `windows/fr-t-k0-azerty`, `linux/fr-t-k0-azerty`
-- `mac/de-t-k0-qwertz`, `windows/de-t-k0-qwertz`, `linux/de-t-k0-qwertz`
-- `windows/ru-t-k0-jcuken`, `linux/ru-t-k0-jcuken`, `mac/ru-t-k0-jcuken`
-- `mac/en-US-t-k0-dvorak`, `windows/en-US-t-k0-dvorak`, `linux/en-US-t-k0-dvorak`
+| Family | Languages / regions |
+| --- | --- |
+| QWERTY (US, UK, International) | English |
+| Dvorak, Colemak | English |
+| AZERTY, BÉPO, CSA | French (FR, CA) |
+| QWERTZ | German |
+| Spanish, Latin American | `es`, `es-419` |
+| Italian, Portuguese (PT + BR ABNT2) | `it`, `pt`, `pt-BR` |
+| Swedish, Finnish, Norwegian, Danish | Nordic |
+| Polish Programmers | `pl` |
+| JCUKEN | Russian |
+| Turkish Q | `tr` |
+| JIS | Japanese |
+
+Run `cargo run --example inspect --all-features -- ? scancode 0` for
+the full list of layout ids shipped in the build.
 
 Full [Unicode CLDR keyboard data](https://github.com/unicode-org/cldr/tree/main/keyboards)
-import is on the roadmap — see [CONTRIBUTING.md](CONTRIBUTING.md).
+import was once considered for bulk scale, but the new CLDR 3.0 format
+currently covers only a handful of niche layouts — hand-curated tables
+remain the pragmatic source.
 
 ## What this crate will *not* do (non-goals)
 
