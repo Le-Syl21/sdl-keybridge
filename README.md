@@ -102,27 +102,63 @@ exposed here. Use the same crate regardless of your SDL binding.
 
 ## Locales
 
-26 locales available as individual Cargo features:
+26 locales available as individual Cargo features.
 
-| Code | Language | Code | Language | Code | Language |
-| --- | --- | --- | --- | --- | --- |
-| `en` (default) | English | `fr` | Français | `de` | Deutsch |
-| `es` | Español | `it` | Italiano | `pt` | Português |
-| `nl` | Nederlands | `sv` | Svenska | `fi` | Suomi |
-| `pl` | Polski | `cs` | Čeština | `sk` | Slovenčina |
-| `tr` | Türkçe | `ru` | Русский | `ar` | العربية |
-| `hi` | हिन्दी | `bn` | বাংলা | `ur` | اردو |
-| `zh-hans` | 简体中文 | `zh-hant` | 繁體中文 | `ja` | 日本語 |
-| `ko` | 한국어 | `id` | Bahasa Indonesia | `sw` | Kiswahili |
-| `vi` | Tiếng Việt | `th` | ภาษาไทย | | |
+| Code | Language | Coverage |
+| --- | --- | --- |
+| `en` *(default)* | English | reference, 110 ids |
+| `fr`             | Français | full |
+| `de`             | Deutsch | full |
+| `cs`             | Čeština | near-full |
+| `es`             | Español | near-full |
+| `fi`             | Suomi | near-full |
+| `it`             | Italiano | near-full |
+| `ja`             | 日本語 | near-full |
+| `ko`             | 한국어 | near-full |
+| `nl`             | Nederlands | near-full |
+| `pl`             | Polski | near-full |
+| `pt`             | Português | near-full |
+| `ru`             | Русский | near-full |
+| `sk`             | Slovenčina | near-full |
+| `sv`             | Svenska | near-full |
+| `tr`             | Türkçe | near-full |
+| `zh-hans`        | 简体中文 | near-full |
+| `zh-hant`        | 繁體中文 | near-full |
+| `ar`             | العربية | partial (essentials; falls back to English) |
+| `bn`             | বাংলা | partial |
+| `hi`             | हिन्दी | partial |
+| `id`             | Bahasa Indonesia | partial |
+| `sw`             | Kiswahili | partial |
+| `th`             | ภาษาไทย | partial |
+| `ur`             | اردو | partial |
+| `vi`             | Tiếng Việt | partial |
 
 Enable only what you need; use the aggregate `all-locales` feature to
 pull them all in.
 
 ```toml
 [dependencies]
-sdl-keybridge = { version = "0.1", features = ["fr", "de", "ja"] }
+sdl-keybridge = { version = "0.3", features = ["fr", "de", "ja"] }
 ```
+
+### 🙏 Call for translators
+
+The **partial** locales above only cover the most common keys — F-keys,
+keypad labels, left/right modifier variants, and platform-aware
+modifier names all fall back to English for these 8 languages. We kept
+them partial rather than risk inaccurate translations in scripts we
+cannot independently verify (Arabic, Devanagari, Bengali, Thai, etc.).
+
+**If you are a native speaker**, opening a PR to complete any of these
+locales is the single highest-leverage contribution you can make.
+The recipe is in [CONTRIBUTING.md](CONTRIBUTING.md) — in short:
+`cp src/locales/en.rs src/locales/<code>.rs`, translate the strings,
+send a PR. Each locale is pure Rust (~120 lines, one `match` expression,
+no TOML / no codegen).
+
+The same offer stands for any locale not yet listed (Greek, Hebrew,
+Icelandic, Kazakh, …). Adding a brand-new locale is ~5 lines of wiring
+on top of the translated file.
 
 ## Layouts
 

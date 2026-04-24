@@ -23,7 +23,19 @@ cargo test --all-features
 cargo test
 ```
 
-## Adding a language
+## Adding or completing a translation
+
+**We actively need native-speaker contributions** for the partial
+locales listed in `README.md` — especially **Arabic, Bengali, Hindi,
+Indonesian, Swahili, Thai, Urdu, Vietnamese**. Their current state
+only translates the 20-odd most common keys; anything else (F-keys,
+keypad labels, left/right modifier variants) falls back to English.
+The maintainers deliberately did *not* auto-translate those to avoid
+introducing subtle errors in scripts we cannot verify.
+
+Adding a **brand-new locale** (Greek, Hebrew, Icelandic, Kazakh,
+Ukrainian, …) is equally welcome — ~120 lines of translated strings
+plus ~5 lines of wiring.
 
 The locale modules are **pure Rust** — no TOML, no code generation, no
 macros. Each is one `match` expression.
