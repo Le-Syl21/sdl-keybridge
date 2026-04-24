@@ -1,9 +1,9 @@
 //! Interactive CLI inspector — feed it a layout + an input key and it
 //! dumps every parallel representation the crate can compute.
 //!
-//! This is the manual exploration harness that the (deferred) egui
-//! demo would have automated. Use it to validate a layout entry, debug
-//! a locale, or eyeball the cross-layout bridge by hand.
+//! Use this as the manual exploration harness to validate a layout
+//! entry, debug a locale, or eyeball the cross-layout bridge by hand.
+//! No GUI demo is planned — this CLI covers that role.
 //!
 //! ## Synopsis
 //!

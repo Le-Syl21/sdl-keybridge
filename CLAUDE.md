@@ -103,30 +103,25 @@ keycode_from_name(name) -> Option<Keycode>
   Procédure détaillée dans `CONTRIBUTING.md`.
 - License dual MIT / Apache-2.0 pour toute contribution.
 
-## Démo egui (`examples/egui-demo/`)
+## Démos CLI (`examples/`)
 
-Binaire démo visualisant les 4 fonctions publiques sur un vrai clavier.
-Il sert **deux rôles** :
-1. Outil de test manuel exhaustif (toutes combinaisons layout × locale ×
-   plateforme × style)
-2. Fallback UX quand la détection automatique d'un layout côté appli
-   consommatrice échoue — l'utilisateur peut toujours choisir à la main
+Deux binaires de démonstration sont livrés :
 
-**Contrainte UX importante** : les sélecteurs de layout (input ET output,
-pour le bridge) doivent être **hiérarchiques à 2 niveaux** — d'abord la
-langue (French, German, Russian, …), puis la liste des claviers pour
-cette langue (AZERTY, BEPO, Dvorak-FR, …). UX inspirée du keyboard
-picker de l'installeur Linux. Les 50+ layouts ne doivent JAMAIS être
-affichés en liste flat ; ce serait inutilisable.
+- `examples/showcase.rs` — walk-through non-interactif des 11 scénarios
+  canoniques (cross-layout, Caps/Num correctness, platform-aware
+  modifiers, bridge, combo formatting). Sert de démo "hello world"
+  pour valider un build.
+- `examples/inspect.rs` — inspecteur CLI interactif. On lui passe un
+  layout + `scancode N` | `keycode 0x…` | `name "Esc"` et il sort le
+  `Resolved` complet (Textual + Symbolic), les 4 niveaux de modifier
+  de la touche, tous les `modifier_label` pour la plateforme/locale
+  choisies, plus la même touche physique rejouée sur les 14 autres
+  layouts (bridge cross-layout). C'est le harness d'exploration
+  manuel.
 
-Éléments de l'UI :
-- Layout input : picker hiérarchique langue → clavier
-- Layout output : idem (pour démo du bridge cross-layout)
-- Locale UI : dropdown des features compilées
-- Platform : Mac / Windows / Linux / ChromeOS
-- LabelStyle : Textual / Symbolic
-- Capture clavier live → affiche scancode, mods, keycode, glyph_en, glyph_local
-- Section "Bridge" : keycode + layout source → résultat côté target
+Pas de démo graphique prévue — les deux CLI couvrent le besoin de
+validation/exploration sans ajouter de dépendance lourde (egui, winit,
+etc.).
 
 ## Spec complète
 

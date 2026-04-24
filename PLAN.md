@@ -102,7 +102,7 @@ pub fn modifier_label(
 - **Format de combo localisé** (`format_combo()`) : applique une **convention** de présentation (séparateur, ordre des modifiers, symbolique vs textuelle). C'est Champollion. La crate expose les labels individuels via `modifier_label()` et `resolve().glyph_local` ; le downstream assemble avec son format préféré.
 - **`translate()` / bridge packagé** : enchaîne `scancode_for` + `resolve`. La crate expose les deux primitives ; le downstream chaîne lui-même en 2 lignes. Un exemple canonique est documenté dans le README, mais pas packagé en fonction.
 - **Serialization de binding** (`Binding::serialize / parse / rebase`) : format de config = choix du downstream (INI, JSON, RON, binaire, etc.). La Rosette ne dicte pas le papyrus.
-- Le binaire `examples/egui-demo/` pourra faire de la détection best-effort desktop-only via `key-names`, mais c'est un exemple, pas une partie de la crate publiée.
+- **Démo graphique** : pas de binaire GUI (egui/winit/…). Les deux CLI `examples/showcase.rs` et `examples/inspect.rs` couvrent la validation et l'exploration manuelle sans ajouter de dépendance lourde.
 
 ---
 
@@ -139,7 +139,8 @@ sdl-keybridge/
 │   ├── platform.rs         # modifier_label platform-aware (Mac/Windows/Linux)
 │   └── locales.rs          # chaque locale : no-missing-key + non-empty, Textual & Symbolic
 ├── examples/
-│   └── egui-demo/          # binaire démo : rebind UI multi-layout
+│   ├── showcase.rs         # walk-through non-interactif des 11 scénarios canoniques
+│   └── inspect.rs          # inspecteur CLI : layout + (scancode|keycode|name) → Resolved complet
 └── LICENSE-MIT, LICENSE-APACHE, README.md, CONTRIBUTING.md
 ```
 
@@ -256,7 +257,8 @@ Pour éviter de polluer l'implémentation future avec le contexte du répertoire
 - `sdl-keybridge/tests/api.rs`
 - `sdl-keybridge/tests/layouts.rs`
 - `sdl-keybridge/tests/locales.rs`
-- `sdl-keybridge/examples/egui-demo/main.rs`
+- `sdl-keybridge/examples/showcase.rs`
+- `sdl-keybridge/examples/inspect.rs`
 - `sdl-keybridge/README.md`
 - `sdl-keybridge/LICENSE-MIT`
 - `sdl-keybridge/LICENSE-APACHE`
@@ -278,16 +280,21 @@ Pour éviter de polluer l'implémentation future avec le contexte du répertoire
 8. **Feature matrix CI** : GitHub Actions build avec `default-features = false`, `features = ["en"]`, `features = ["fr"]`, `features = ["all-locales"]` — tous doivent compiler et passer les tests.
 9. **keycode_from_name** : round-trip `SDL_GetKeyName` ↔ `keycode_from_name` sur ~30 touches connues (Escape, Tab, F5, Left Shift, a, 1, etc.)
 
-### Démo egui (`examples/egui-demo/`)
+### Démos CLI (`examples/`)
 
-Binaire démo montrant visuellement les 4 fonctions :
-- Sélecteur de layout (dropdown des 50+)
-- Sélecteur de locale UI (dropdown des features compilées)
-- Sélecteur de plateforme (Mac/Windows/Linux/ChromeOS) pour modifier_label
-- Sélecteur de `LabelStyle` (Textual/Symbolic)
-- Capture clavier live → affiche scancode, mods, keycode, glyph_en, glyph_local
-- Section "Bridge" : champ "source layout" + "keycode" → affiche le résultat côté target (chaînage `scancode_for` + `resolve` visualisé)
-- Prouve visuellement les 3 cas d'usage de la Rosette
+Deux binaires CLI tiennent le rôle de démo, sans dépendance lourde :
+
+- `examples/showcase.rs` — walk-through non-interactif enchaînant les
+  11 scénarios canoniques (cross-layout char resolution, fallback
+  locale, Caps/Num correctness, modifiers platform-aware, bridge,
+  combo). Utile pour valider un build en un coup d'œil.
+- `examples/inspect.rs` — inspecteur interactif. Syntaxe :
+  `inspect <layout> <scancode|keycode|name> <value> [mods] [locale] [platform]`.
+  Sort le `Resolved` complet dans les deux styles, la table
+  base/shift/altgr/shift-altgr, tous les `modifier_label` pour la
+  plateforme/locale, et rejoue la touche physique sur les 14 autres
+  layouts. Remplace le besoin d'une UI graphique pour valider un
+  scancode, debugger une locale ou visualiser le bridge.
 
 ### Publication checklist
 
