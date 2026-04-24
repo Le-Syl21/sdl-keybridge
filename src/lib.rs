@@ -155,7 +155,7 @@ mod locales;
 pub use keycode::{Keycode, SCANCODE_MASK};
 pub use keymod::KeyMod;
 pub use layout::{
-    all_layouts, get_layout, Layout, LayoutKey, CLDR_LAYOUTS, HAND_CODED_LAYOUTS, STD_NAMED_KEYS,
+    all_layouts, get_layout, Layout, LayoutKey, CLDR3_LAYOUTS, CLDR_LAYOUTS, STD_NAMED_KEYS,
 };
 pub use localizer::{KeyLocalizer, LabelStyle, Modifier, MultiLocalizer, Platform};
 pub use named_key::NamedKey;

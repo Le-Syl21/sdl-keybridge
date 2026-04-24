@@ -13,7 +13,7 @@ fn resolve_letter_us_qwerty() {
     let r = resolve(
         Scancode::A,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -30,7 +30,7 @@ fn resolve_letter_with_shift() {
     let r = resolve(
         Scancode::A,
         KeyMod::LSHIFT,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -45,7 +45,7 @@ fn resolve_azerty_q_gives_a() {
     let r = resolve(
         Scancode::Q,
         KeyMod::NONE,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -61,7 +61,7 @@ fn resolve_azerty_digit_row_shift_gives_digit() {
     let r_base = resolve(
         Scancode::NUM_1,
         KeyMod::NONE,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -71,7 +71,7 @@ fn resolve_azerty_digit_row_shift_gives_digit() {
     let r_shift = resolve(
         Scancode::NUM_1,
         KeyMod::LSHIFT,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -86,7 +86,7 @@ fn resolve_named_key_is_localized_en() {
     let r_en = resolve(
         Scancode::ESCAPE,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -102,7 +102,7 @@ fn resolve_named_key_is_localized_fr() {
     let r_fr = resolve(
         Scancode::ESCAPE,
         KeyMod::NONE,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -117,7 +117,7 @@ fn resolve_arrow_symbolic_vs_textual() {
     let sym = resolve(
         Scancode::UP,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Symbolic,
         &loc,
@@ -127,7 +127,7 @@ fn resolve_arrow_symbolic_vs_textual() {
     let txt = resolve(
         Scancode::UP,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -138,13 +138,13 @@ fn resolve_arrow_symbolic_vs_textual() {
 #[test]
 fn scancode_for_round_trip_us_qwerty() {
     for c in ['a', 'z', 'q', 'm', '1', '0', '-', '='] {
-        let sc = scancode_for(Keycode::from(c), "linux/en-US-t-k0-qwerty")
+        let sc = scancode_for(Keycode::from(c), "windows/en-t-k0-windows")
             .unwrap_or_else(|| panic!("no scancode for {c:?}"));
         let loc = MultiLocalizer::new();
         let r = resolve(
             sc,
             KeyMod::NONE,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             "en",
             LabelStyle::Textual,
             &loc,
@@ -155,10 +155,10 @@ fn scancode_for_round_trip_us_qwerty() {
 
 #[test]
 fn scancode_for_named_key() {
-    let sc = scancode_for(Keycode::ESCAPE, "linux/en-US-t-k0-qwerty");
+    let sc = scancode_for(Keycode::ESCAPE, "windows/en-t-k0-windows");
     assert_eq!(sc, Some(Scancode::ESCAPE));
 
-    let sc = scancode_for(Keycode::F5, "linux/en-US-t-k0-qwerty");
+    let sc = scancode_for(Keycode::F5, "windows/en-t-k0-windows");
     assert_eq!(sc, Some(Scancode::F5));
 }
 

@@ -37,8 +37,9 @@ pub struct Resolved {
 /// - `mods`: current modifier bitmask (including Caps Lock and Num Lock
 ///   latches, which are handled correctly — Caps only flips letters,
 ///   Num Lock toggles keypad digit vs navigation).
-/// - `layout`: the layout id — e.g. `"linux/fr-t-k0-azerty"`. An unknown
-///   id falls back to `"linux/en-US-t-k0-qwerty"`.
+/// - `layout`: the layout id — e.g. `"windows/fr-t-k0-windows"`. An
+///   unknown id falls back to `"windows/en-t-k0-windows"` (CLDR US
+///   QWERTY for Windows).
 /// - `locale`: BCP 47 tag of the UI language — e.g. `"fr"`, `"en-US"`,
 ///   `"zh-Hans"`.
 /// - `style`: textual (`"Up"`, `"Haut"`) vs symbolic (`↑`).
@@ -53,8 +54,8 @@ pub fn resolve<L: KeyLocalizer>(
     localizer: &L,
 ) -> Resolved {
     let layout_ref = layout::get_layout(layout)
-        .or_else(|| layout::get_layout("linux/en-US-t-k0-qwerty"))
-        .expect("en-US-t-k0-qwerty always present");
+        .or_else(|| layout::get_layout("windows/en-t-k0-windows"))
+        .expect("windows/en-t-k0-windows always present in CLDR data");
 
     resolve_in_layout(scancode, mods, layout_ref, locale, style, localizer)
 }

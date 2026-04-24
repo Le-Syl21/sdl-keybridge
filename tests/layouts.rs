@@ -45,14 +45,14 @@ fn azerty_fr_swap_preserves_russian_f_to_french_q() {
     let loc = MultiLocalizer::new();
 
     let keycode_ru_f = sdl_keybridge::Keycode::from('ф');
-    let sc = scancode_for(keycode_ru_f, "linux/ru-t-k0-jcuken")
+    let sc = scancode_for(keycode_ru_f, "windows/ru-t-k0-windows")
         .expect("ф must exist in the Russian layout");
     assert_eq!(sc, sdl_keybridge::Scancode::A);
 
     let r = resolve(
         sc,
         KeyMod::NONE,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -69,7 +69,7 @@ fn german_y_swap() {
     let r_qwerty = resolve(
         sdl_keybridge::Scancode::Y,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -79,7 +79,7 @@ fn german_y_swap() {
     let r_qwertz = resolve(
         sdl_keybridge::Scancode::Y,
         KeyMod::NONE,
-        "linux/de-t-k0-qwertz",
+        "windows/de-t-k0-windows",
         "de",
         LabelStyle::Textual,
         &loc,
@@ -93,7 +93,7 @@ fn dvorak_a_is_still_a() {
     let r = resolve(
         sdl_keybridge::Scancode::A,
         KeyMod::NONE,
-        "linux/en-US-t-k0-dvorak",
+        "windows/en-t-k0-windows-dvorak",
         "en",
         LabelStyle::Textual,
         &loc,

@@ -126,26 +126,41 @@ sdl-keybridge = { version = "0.1", features = ["fr", "de", "ja"] }
 
 ## Layouts
 
-v0.3 ships **667 layouts** :
+v0.3 ships **601 layouts, all sourced from [Unicode CLDR 43](https://github.com/unicode-org/cldr/tree/release-43/keyboards)**
+at build time — no hand-authored layout data in the crate:
 
-- **66 hand-curated** (22 families × 3 platforms) — the pragmatic
-  baseline covering the 20 most-used layouts worldwide.
-- **601 generated from [Unicode CLDR 43](https://github.com/unicode-org/cldr/tree/release-43/keyboards)**
-  at build time — the full legacy LDML-KEYBOARD 2.x set across Android
-  (175), ChromeOS (55), macOS (137), Windows (209), plus a handful of
-  platform-neutral entries (25). CLDR 44+ migrated to a new 3.0 format
-  still mostly unpopulated; CLDR 43 remains the canonical historical
-  source.
+| Platform | Count |
+| --- | ---: |
+| Android  | 175 |
+| ChromeOS |  55 |
+| macOS    | 137 |
+| Windows  | 209 |
+| Platform-neutral (`und`) | 25 |
+| **Total** | **601** |
 
-Layout ids follow `<platform>/<lang>-t-k0-<variant>`. Hand-coded
-layouts take precedence over CLDR-generated ones when the ids
-collide (so the hand-curated AZERTY / QWERTZ / JCUKEN variants stay
-authoritative).
+Every glyph served by `resolve()` / `scancode_for()` comes from a
+CLDR-maintained XML with the full chain of Unicode Consortium / vendor
+review behind it. If you find a character that looks wrong, that's a
+CLDR upstream issue — fix it there and refresh `data/cldr-43/` to get
+the corrected version.
 
-Hand-coded highlights: US QWERTY, UK QWERTY, US International, Dvorak,
-Colemak, French AZERTY/BÉPO/CSA, German QWERTZ, Spanish (ES + LatAm),
-Italian, Portuguese (PT + BR ABNT2), Nordic quartet (SV/FI/NB/DA),
-Polish Programmers, Russian JCUKEN, Turkish Q, Japanese JIS.
+Layout ids are the exact CLDR locale tags prefixed by the platform dir:
+
+- `windows/en-t-k0-windows`           — US QWERTY, Windows
+- `windows/en-GB-t-k0-windows`        — UK QWERTY
+- `windows/fr-t-k0-windows`           — French AZERTY
+- `windows/de-t-k0-windows`           — German QWERTZ
+- `windows/ru-t-k0-windows`           — Russian ЙЦУКЕН
+- `windows/ja-t-k0-windows`           — Japanese JIS
+- `osx/en-t-k0-osx-colemak`           — Colemak (macOS)
+- `windows/en-t-k0-windows-dvorak`    — Dvorak (Windows)
+- `android/*-t-k0-android*`           — touch keyboards with long-press
+                                        ignored (we expose primary glyph)
+- etc.
+
+CLDR 44+ migrated to a new 3.0 format currently covering only ~8 niche
+layouts; CLDR 43 remains the canonical legacy source until 3.0 catches
+up.
 
 Run `cargo run --example inspect --all-features -- ? scancode 0` for
 the full list of layout ids in this build.

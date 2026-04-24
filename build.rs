@@ -366,20 +366,391 @@ fn rs_str(s: &str) -> String {
     out
 }
 
+// ==========================================================================
+// CLDR 3.0 parser — reads data/cldr-48-v3/keyboards/3.0/*.xml. The format
+// is a complete rewrite vs 2.x: named `<key id="X" output="Y"/>` entries
+// declared in a shared dictionary (imports + local), then
+// `<layers formId="iso|us|jis|abnt2">` with `<row keys="k1 k2 k3">`
+// assigning keys left-to-right to ISO positions per form.
+//
+// For v0.3.1 scope we intentionally skip `formId="touch"` (mobile-only),
+// deadkey outputs (`\m{...}` references) and multi-char outputs
+// (ligatures, ss/ß, …).
+// ==========================================================================
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum Form {
+    Iso,
+    Us,
+    Jis,
+    Abnt2,
+}
+
+impl Form {
+    fn parse(s: &str) -> Option<Form> {
+        Some(match s {
+            "iso" => Form::Iso,
+            "us" => Form::Us,
+            "jis" => Form::Jis,
+            "abnt2" => Form::Abnt2,
+            _ => return None, // "touch" and others fall through here
+        })
+    }
+
+    fn row_positions(self, row_idx: usize) -> &'static [&'static str] {
+        match (self, row_idx) {
+            // Digit row
+            (Form::Iso | Form::Jis | Form::Abnt2, 0) => &[
+                "GRAVE",
+                "NUM_1",
+                "NUM_2",
+                "NUM_3",
+                "NUM_4",
+                "NUM_5",
+                "NUM_6",
+                "NUM_7",
+                "NUM_8",
+                "NUM_9",
+                "NUM_0",
+                "MINUS",
+                "EQUALS",
+                "INTERNATIONAL3",
+            ],
+            (Form::Us, 0) => &[
+                "GRAVE", "NUM_1", "NUM_2", "NUM_3", "NUM_4", "NUM_5", "NUM_6", "NUM_7", "NUM_8",
+                "NUM_9", "NUM_0", "MINUS", "EQUALS",
+            ],
+            // QWERTY row
+            (_, 1) => &[
+                "Q",
+                "W",
+                "E",
+                "R",
+                "T",
+                "Y",
+                "U",
+                "I",
+                "O",
+                "P",
+                "LEFT_BRACKET",
+                "RIGHT_BRACKET",
+                "BACKSLASH",
+            ],
+            // Home row
+            (Form::Iso | Form::Jis | Form::Abnt2, 2) => &[
+                "A",
+                "S",
+                "D",
+                "F",
+                "G",
+                "H",
+                "J",
+                "K",
+                "L",
+                "SEMICOLON",
+                "APOSTROPHE",
+                "NON_US_HASH",
+            ],
+            (Form::Us, 2) => &[
+                "A",
+                "S",
+                "D",
+                "F",
+                "G",
+                "H",
+                "J",
+                "K",
+                "L",
+                "SEMICOLON",
+                "APOSTROPHE",
+            ],
+            // Bottom row
+            (Form::Iso, 3) => &[
+                "NON_US_BACKSLASH",
+                "Z",
+                "X",
+                "C",
+                "V",
+                "B",
+                "N",
+                "M",
+                "COMMA",
+                "PERIOD",
+                "SLASH",
+            ],
+            (Form::Us, 3) => &[
+                "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH",
+            ],
+            (Form::Jis, 3) => &[
+                "NON_US_BACKSLASH",
+                "Z",
+                "X",
+                "C",
+                "V",
+                "B",
+                "N",
+                "M",
+                "COMMA",
+                "PERIOD",
+                "SLASH",
+                "INTERNATIONAL1",
+            ],
+            (Form::Abnt2, 3) => &[
+                "NON_US_BACKSLASH",
+                "Z",
+                "X",
+                "C",
+                "V",
+                "B",
+                "N",
+                "M",
+                "COMMA",
+                "PERIOD",
+                "SLASH",
+                "INTERNATIONAL1",
+            ],
+            _ => &[], // row 4 (space) handled via named keys
+        }
+    }
+}
+
+/// Extract single-char outputs from a CLDR 3.0 `<keys>` block. Unknown /
+/// marker / multi-char outputs become `None` entries (i.e. "don't know",
+/// falls through when a layout references them).
+fn load_v3_keys(path: &Path, out: &mut std::collections::HashMap<String, Option<char>>) {
+    let Ok(content) = fs::read_to_string(path) else {
+        return;
+    };
+    let mut reader = Reader::from_str(&content);
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    loop {
+        let ev = reader.read_event_into(&mut buf);
+        match ev {
+            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) if e.name().as_ref() == b"key" => {
+                let mut id: Option<String> = None;
+                let mut output: Option<String> = None;
+                let mut is_gap = false;
+                for attr in e.attributes().flatten() {
+                    match attr.key.as_ref() {
+                        b"id" => {
+                            if let Ok(v) = attr.unescape_value() {
+                                id = Some(v.into_owned());
+                            }
+                        }
+                        b"output" => {
+                            if let Ok(v) = attr.unescape_value() {
+                                output = Some(v.into_owned());
+                            }
+                        }
+                        b"gap" => {
+                            if let Ok(v) = attr.unescape_value() {
+                                if v == "true" {
+                                    is_gap = true;
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                let Some(id) = id else { continue };
+                if is_gap {
+                    out.insert(id, None);
+                    continue;
+                }
+                let Some(output) = output else {
+                    out.insert(id, None);
+                    continue;
+                };
+                // Marker reference `\m{...}` → not a single printable char.
+                if output.starts_with("\\m{") {
+                    out.insert(id, None);
+                    continue;
+                }
+                let decoded = decode_unicode_escapes(&output);
+                let mut it = decoded.chars();
+                match (it.next(), it.next()) {
+                    (Some(c), None) if !c.is_control() || c == ' ' => {
+                        out.insert(id, Some(c));
+                    }
+                    _ => {
+                        out.insert(id, None);
+                    }
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(_) => break,
+            _ => {}
+        }
+        buf.clear();
+    }
+}
+
+fn parse_v3_file(
+    path: &Path,
+    shared_keys: &std::collections::HashMap<String, Option<char>>,
+) -> Option<LayoutData> {
+    // Start from the shared (imported) keys, then overlay this file's local
+    // `<keys>` so local overrides win.
+    let mut keys = shared_keys.clone();
+    load_v3_keys(path, &mut keys);
+
+    let content = fs::read_to_string(path).ok()?;
+    let mut reader = Reader::from_str(&content);
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+
+    let mut locale = String::new();
+    let mut display_name = String::new();
+    let mut current_form: Option<Form> = None;
+    let mut current_level: Option<Level> = None;
+    let mut row_idx = 0usize;
+    let mut levels: BTreeMap<&'static str, [Option<char>; 4]> = BTreeMap::new();
+    let mut picked_form: Option<Form> = None;
+
+    loop {
+        let ev = reader.read_event_into(&mut buf);
+        match ev {
+            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => match e.name().as_ref() {
+                b"keyboard3" => {
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"locale" {
+                            if let Ok(v) = attr.unescape_value() {
+                                locale = v.into_owned();
+                            }
+                        }
+                    }
+                }
+                b"info" => {
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"name" {
+                            if let Ok(v) = attr.unescape_value() {
+                                display_name = v.into_owned();
+                            }
+                        }
+                    }
+                }
+                b"layers" => {
+                    let mut form_str = String::new();
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"formId" {
+                            if let Ok(v) = attr.unescape_value() {
+                                form_str = v.into_owned();
+                            }
+                        }
+                    }
+                    current_form = Form::parse(&form_str);
+                    // Lock onto the first non-touch form we encounter.
+                    if picked_form.is_none() && current_form.is_some() {
+                        picked_form = current_form;
+                    }
+                }
+                b"layer" => {
+                    let mut mods_str: Option<String> = None;
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"modifiers" {
+                            if let Ok(v) = attr.unescape_value() {
+                                mods_str = Some(v.into_owned());
+                            }
+                        }
+                    }
+                    current_level = classify(mods_str.as_deref());
+                    row_idx = 0;
+                }
+                b"row" => {
+                    // Only process rows under the picked form.
+                    let Some(form) = current_form else {
+                        continue;
+                    };
+                    if Some(form) != picked_form {
+                        continue;
+                    }
+                    let Some(level) = current_level else {
+                        continue;
+                    };
+                    let mut keys_attr = String::new();
+                    for attr in e.attributes().flatten() {
+                        if attr.key.as_ref() == b"keys" {
+                            if let Ok(v) = attr.unescape_value() {
+                                keys_attr = v.into_owned();
+                            }
+                        }
+                    }
+                    let positions = form.row_positions(row_idx);
+                    for (idx, key_id) in keys_attr.split_whitespace().enumerate() {
+                        if idx >= positions.len() {
+                            break;
+                        }
+                        let sc_name = positions[idx];
+                        // Resolve key_id through the dictionary.
+                        let Some(Some(c)) = keys.get(key_id) else {
+                            continue; // unknown or marker → skip
+                        };
+                        let entry = levels.entry(sc_name).or_insert([None; 4]);
+                        let slot = match level {
+                            Level::Base => 0,
+                            Level::Shift => 1,
+                            Level::AltGr => 2,
+                            Level::ShiftAltGr => 3,
+                        };
+                        if entry[slot].is_none() {
+                            entry[slot] = Some(*c);
+                        }
+                    }
+                    row_idx += 1;
+                }
+                _ => {}
+            },
+            Ok(Event::End(ref e)) if e.name().as_ref() == b"layers" => {
+                current_form = None;
+            }
+            Ok(Event::End(ref e)) if e.name().as_ref() == b"layer" => {
+                current_level = None;
+            }
+            Ok(Event::Eof) => break,
+            Err(_) => return None,
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    if locale.is_empty() || levels.is_empty() {
+        return None;
+    }
+    let language = locale.split('-').next().unwrap_or(&locale).to_string();
+    if display_name.is_empty() {
+        display_name = format!("{locale} (CLDR 3.0)");
+    }
+    // IDs are `cldr3/<filename-stem>` so they never collide with v2 ids
+    // (`android/...`, `windows/...`, etc.).
+    let stem = path.file_stem()?.to_str()?;
+    let id = format!("cldr3/{stem}");
+
+    Some(LayoutData {
+        id,
+        display_name,
+        platform_const: "Platform::Linux",
+        language,
+        levels,
+    })
+}
+
 fn main() {
     println!("cargo:rerun-if-changed=data/cldr-43/keyboards");
+    println!("cargo:rerun-if-changed=data/cldr-48-v3/keyboards");
     println!("cargo:rerun-if-changed=build.rs");
 
     let manifest_dir =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
-    let base = manifest_dir.join("data/cldr-43/keyboards");
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR"));
     let out_path = out_dir.join("cldr_layouts.rs");
 
+    // ---------- v2 pass (CLDR 43) ----------
+    let base_v2 = manifest_dir.join("data/cldr-43/keyboards");
     let mut layouts: Vec<LayoutData> = Vec::new();
-    if base.exists() {
+    if base_v2.exists() {
         for platform_dir in ["android", "chromeos", "osx", "windows", "und"] {
-            let dir = base.join(platform_dir);
+            let dir = base_v2.join(platform_dir);
             if !dir.exists() {
                 continue;
             }
@@ -400,16 +771,63 @@ fn main() {
             }
         }
     }
-
     layouts.sort_by(|a, b| a.id.cmp(&b.id));
     layouts.dedup_by(|a, b| a.id == b.id);
 
-    let mut out = String::new();
-    out.push_str("// @generated by build.rs from data/cldr-43/keyboards — do not edit\n\n");
+    // ---------- v3 pass (CLDR 48.2) ----------
+    let base_v3 = manifest_dir.join("data/cldr-48-v3/keyboards");
+    let mut v3_layouts: Vec<LayoutData> = Vec::new();
+    if base_v3.exists() {
+        // Load the shared import dictionary first.
+        let mut shared_keys: std::collections::HashMap<String, Option<char>> =
+            std::collections::HashMap::new();
+        let imports_dir = base_v3.join("import");
+        if imports_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&imports_dir) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().and_then(|s| s.to_str()) == Some("xml") {
+                        load_v3_keys(&p, &mut shared_keys);
+                    }
+                }
+            }
+        }
+        let layouts_dir = base_v3.join("3.0");
+        if let Ok(entries) = fs::read_dir(&layouts_dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|s| s.to_str()) != Some("xml") {
+                    continue;
+                }
+                if let Some(l) = parse_v3_file(&p, &shared_keys) {
+                    v3_layouts.push(l);
+                }
+            }
+        }
+    }
+    v3_layouts.sort_by(|a, b| a.id.cmp(&b.id));
+    v3_layouts.dedup_by(|a, b| a.id == b.id);
 
-    for l in &layouts {
+    let mut out = String::new();
+    out.push_str("// @generated by build.rs from data/cldr-43 + data/cldr-48-v3 — do not edit\n\n");
+
+    emit_set(&mut out, &layouts, "CLDR", "CLDR_LAYOUTS");
+    emit_set(&mut out, &v3_layouts, "CLDR3", "CLDR3_LAYOUTS");
+
+    fs::write(&out_path, out).expect("write cldr_layouts.rs");
+    println!(
+        "cargo:warning=sdl-keybridge: generated {} CLDR 2.x + {} CLDR 3.0 layouts",
+        layouts.len(),
+        v3_layouts.len(),
+    );
+}
+
+fn emit_set(out: &mut String, layouts: &[LayoutData], const_prefix: &str, registry: &str) {
+    for l in layouts {
         let sym = sanitize_ident(&l.id);
-        out.push_str(&format!("const CLDR_KEYS_{sym}: &[LayoutKey] = &[\n"));
+        out.push_str(&format!(
+            "const {const_prefix}_KEYS_{sym}: &[LayoutKey] = &[\n"
+        ));
         for (sc_name, glyphs) in &l.levels {
             let Some(base_c) = glyphs[0] else {
                 continue;
@@ -439,13 +857,13 @@ fn main() {
         out.push_str("];\n\n");
 
         out.push_str(&format!(
-            "pub const CLDR_LAYOUT_{sym}: Layout = Layout {{\n    \
+            "pub const {const_prefix}_LAYOUT_{sym}: Layout = Layout {{\n    \
              id: {},\n    \
              display_name: {},\n    \
              platform: {},\n    \
              language: {},\n    \
              named_keys: STD_NAMED_KEYS,\n    \
-             printable_keys: CLDR_KEYS_{sym},\n}};\n\n",
+             printable_keys: {const_prefix}_KEYS_{sym},\n}};\n\n",
             rs_str(&l.id),
             rs_str(&l.display_name),
             l.platform_const,
@@ -453,16 +871,10 @@ fn main() {
         ));
     }
 
-    out.push_str("pub const CLDR_LAYOUTS: &[&Layout] = &[\n");
-    for l in &layouts {
+    out.push_str(&format!("pub const {registry}: &[&Layout] = &[\n"));
+    for l in layouts {
         let sym = sanitize_ident(&l.id);
-        out.push_str(&format!("    &CLDR_LAYOUT_{sym},\n"));
+        out.push_str(&format!("    &{const_prefix}_LAYOUT_{sym},\n"));
     }
-    out.push_str("];\n");
-
-    fs::write(&out_path, out).expect("write cldr_layouts.rs");
-    println!(
-        "cargo:warning=sdl-keybridge: generated {} CLDR layouts",
-        layouts.len()
-    );
+    out.push_str("];\n\n");
 }

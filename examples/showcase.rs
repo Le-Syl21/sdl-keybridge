@@ -40,10 +40,10 @@ fn main() {
 
     hr("1. resolve() — same physical key, four layouts");
     for (layout, locale) in [
-        ("linux/en-US-t-k0-qwerty", "en"),
-        ("linux/fr-t-k0-azerty", "fr"),
-        ("linux/de-t-k0-qwertz", "de"),
-        ("linux/ru-t-k0-jcuken", "ru"),
+        ("windows/en-t-k0-windows", "en"),
+        ("windows/fr-t-k0-windows", "fr"),
+        ("windows/de-t-k0-windows", "de"),
+        ("windows/ru-t-k0-windows", "ru"),
     ] {
         let r = resolve(
             Scancode::Q,
@@ -72,7 +72,7 @@ fn main() {
         let r = resolve(
             Scancode::ESCAPE,
             KeyMod::NONE,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             locale,
             LabelStyle::Textual,
             &loc,
@@ -90,7 +90,7 @@ fn main() {
         let sym = resolve(
             sc,
             KeyMod::NONE,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             "en",
             LabelStyle::Symbolic,
             &loc,
@@ -98,7 +98,7 @@ fn main() {
         let txt = resolve(
             sc,
             KeyMod::NONE,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             "en",
             LabelStyle::Textual,
             &loc,
@@ -112,7 +112,7 @@ fn main() {
     }
 
     hr("4. resolve() — Caps Lock handling (letters only)");
-    let layouts = "linux/en-US-t-k0-qwerty";
+    let layouts = "windows/en-t-k0-windows";
     for (sc, label) in [
         (Scancode::A, "letter 'a'"),
         (Scancode::NUM_1, "digit '1'"),
@@ -132,7 +132,7 @@ fn main() {
         let on = resolve(
             sc,
             KeyMod::NUM,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             "en",
             LabelStyle::Textual,
             &loc,
@@ -140,7 +140,7 @@ fn main() {
         let off = resolve(
             sc,
             KeyMod::NONE,
-            "linux/en-US-t-k0-qwerty",
+            "windows/en-t-k0-windows",
             "en",
             LabelStyle::Textual,
             &loc,
@@ -181,10 +181,10 @@ fn main() {
 
     hr("8. scancode_for() — reverse lookup");
     for (kc, layout) in [
-        (Keycode::from('a'), "linux/en-US-t-k0-qwerty"),
-        (Keycode::from('q'), "linux/fr-t-k0-azerty"),
-        (Keycode::from('ф'), "linux/ru-t-k0-jcuken"),
-        (Keycode::F5, "linux/en-US-t-k0-qwerty"),
+        (Keycode::from('a'), "windows/en-t-k0-windows"),
+        (Keycode::from('q'), "windows/fr-t-k0-windows"),
+        (Keycode::from('ф'), "windows/ru-t-k0-windows"),
+        (Keycode::F5, "windows/en-t-k0-windows"),
     ] {
         let sc = scancode_for(kc, layout);
         println!("  keycode=0x{:08x} in {layout:<30} → {:?}", kc.raw(), sc);
@@ -193,11 +193,11 @@ fn main() {
     hr("9. Cross-layout bridge — Russian binding replayed on AZERTY");
     // User recorded a binding on "ф" (ru-jcuken). What does the physical
     // key produce on a French AZERTY keyboard?
-    let sc = scancode_for(Keycode::from('ф'), "linux/ru-t-k0-jcuken").unwrap();
+    let sc = scancode_for(Keycode::from('ф'), "windows/ru-t-k0-windows").unwrap();
     let r = resolve(
         sc,
         KeyMod::NONE,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,
@@ -242,7 +242,7 @@ fn main() {
     let key = resolve(
         Scancode::A,
         KeyMod::LCTRL | KeyMod::LSHIFT,
-        "linux/fr-t-k0-azerty",
+        "windows/fr-t-k0-windows",
         "fr",
         LabelStyle::Textual,
         &loc,

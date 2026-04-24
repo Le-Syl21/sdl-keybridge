@@ -10,7 +10,7 @@ fn caps_applies_only_to_letters() {
     let letter = resolve(
         Scancode::A,
         KeyMod::CAPS,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -20,7 +20,7 @@ fn caps_applies_only_to_letters() {
     let digit = resolve(
         Scancode::NUM_1,
         KeyMod::CAPS,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -34,7 +34,7 @@ fn caps_applies_only_to_letters() {
     let bracket = resolve(
         Scancode::LEFT_BRACKET,
         KeyMod::CAPS,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -52,7 +52,7 @@ fn caps_plus_shift_cancels_on_letters() {
     let both = resolve(
         Scancode::A,
         KeyMod::CAPS | KeyMod::LSHIFT,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -70,7 +70,7 @@ fn numlock_on_keypad_produces_digit() {
     let r = resolve(
         Scancode::KP_1,
         KeyMod::NUM,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -86,7 +86,7 @@ fn numlock_off_keypad_is_navigation() {
     let r1 = resolve(
         Scancode::KP_1,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -97,7 +97,7 @@ fn numlock_off_keypad_is_navigation() {
     let r2 = resolve(
         Scancode::KP_2,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,
@@ -107,7 +107,7 @@ fn numlock_off_keypad_is_navigation() {
     let r_period = resolve(
         Scancode::KP_PERIOD,
         KeyMod::NONE,
-        "linux/en-US-t-k0-qwerty",
+        "windows/en-t-k0-windows",
         "en",
         LabelStyle::Textual,
         &loc,

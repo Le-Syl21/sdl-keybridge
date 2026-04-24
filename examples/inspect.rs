@@ -14,7 +14,7 @@
 //!
 //! | Arg          | Meaning |
 //! |--------------|---------|
-//! | `<layout>`   | layout id, e.g. `linux/fr-t-k0-azerty`. Pass `?` to list every layout in this build. |
+//! | `<layout>`   | layout id, e.g. `windows/fr-t-k0-windows`. Pass `?` to list every layout in this build. |
 //! | `<kind>`     | one of `scancode` \| `keycode` \| `name`. |
 //! | `<value>`    | for `scancode` / `keycode`: a decimal or `0x…` integer. For `name`: a textual SDL key name (`"Escape"`, `"Left Shift"`, `"F5"`, `"Keypad 7"`, `"a"`, …). |
 //! | `[mods]`     | optional comma-separated subset of `shift`, `ctrl`, `alt`, `gui`, `altgr`, `caps`, `num` (left-side variants by default; suffix with `r`/`l` for the other side). Use `''` to mean "no modifiers". |
@@ -38,7 +38,7 @@
 //! ```text
 //! # Letter A scancode on every layout, with Shift, French UI
 //! cargo run --example inspect --all-features -- \
-//!     linux/fr-t-k0-azerty scancode 4 shift fr linux
+//!     windows/fr-t-k0-windows scancode 4 shift fr linux
 //!
 //! # Inspect what Shift+2 produces on macOS German QWERTZ (should be ")
 //! cargo run --example inspect --all-features -- \
@@ -46,11 +46,11 @@
 //!
 //! # Look up Escape by its keycode
 //! cargo run --example inspect --all-features -- \
-//!     linux/en-US-t-k0-qwerty keycode 0x40000029
+//!     windows/en-t-k0-windows keycode 0x40000029
 //!
 //! # Look up Left Shift by SDL textual name
 //! cargo run --example inspect --all-features -- \
-//!     linux/en-US-t-k0-qwerty name "Left Shift"
+//!     windows/en-t-k0-windows name "Left Shift"
 //!
 //! # List every layout in the current build
 //! cargo run --example inspect --all-features -- ? scancode 0
