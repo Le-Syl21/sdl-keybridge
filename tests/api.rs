@@ -2,8 +2,10 @@
 
 use sdl_keybridge::{
     keycode_from_name, modifier_label, resolve, scancode_for, KeyMod, Keycode, LabelStyle,
-    Modifier, MultiLocalizer, NamedKey, Platform, Scancode,
+    Modifier, MultiLocalizer, Platform, Scancode,
 };
+#[cfg(feature = "en")]
+use sdl_keybridge::NamedKey;
 
 #[test]
 fn resolve_letter_us_qwerty() {
