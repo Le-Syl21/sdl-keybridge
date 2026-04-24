@@ -1,0 +1,66 @@
+[package]
+name = "sdl-keybridge"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Le-Syl21 <sylvain.gargasson@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Universal Rosetta Stone for SDL keyboards: scancode ↔ keycode ↔ localized glyph across layouts and platforms."
+repository = "https://github.com/Le-Syl21/sdl-keybridge"
+documentation = "https://docs.rs/sdl-keybridge"
+readme = "README.md"
+keywords = ["sdl", "keyboard", "layout", "i18n", "rebind"]
+categories = ["game-development", "internationalization", "os"]
+include = [
+    "src/**/*.rs",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+]
+
+[features]
+default = ["en"]
+all-locales = [
+    "ar", "bn", "cs", "de", "en", "es", "fi", "fr", "hi", "id",
+    "it", "ja", "ko", "nl", "pl", "pt", "ru", "sk", "sv", "sw",
+    "th", "tr", "ur", "vi", "zh-hans", "zh-hant",
+]
+ar = []
+bn = []
+cs = []
+de = []
+en = []
+es = []
+fi = []
+fr = []
+hi = []
+id = []
+it = []
+ja = []
+ko = []
+nl = []
+pl = []
+pt = []
+ru = []
+sk = []
+sv = []
+sw = []
+th = []
+tr = []
+ur = []
+vi = []
+"zh-hans" = []
+"zh-hant" = []
+
+[dependencies]
+
+[dev-dependencies]
+
+[lib]
+name = "sdl_keybridge"
+path = "src/lib.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Re-run the same gates the CI runs, locked to a single OS for speed.
+      # The full matrix already ran on the commit being tagged.
+      - name: rustfmt
+        run: cargo fmt --all --check
+
+      - name: clippy
+        run: cargo clippy --all-features --all-targets -- -D warnings
+
+      - name: test (--all-features)
+        run: cargo test --all-features
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          tag="${GITHUB_REF##refs/tags/v}"
+          crate_version="$(cargo pkgid | awk -F'[#@]' '{print $NF}')"
+          if [ "$tag" != "$crate_version" ]; then
+            echo "::error::Tag v$tag does not match Cargo.toml version $crate_version"
+            exit 1
+          fi
+          echo "Releasing version $crate_version"
+
+      - name: cargo publish --dry-run
+        run: cargo publish --all-features --dry-run
+
+      - name: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+        run: cargo publish --all-features
