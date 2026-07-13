@@ -162,7 +162,7 @@ fn pick_glyph(key: &LayoutKey, shift: bool, altgr: bool) -> Option<char> {
         (false, true) => key.altgr.or(key.base),
         (true, true) => key.shift_altgr.or(key.shift).or(key.base),
     }
-    .and_then(|c| if c == '\0' { None } else { Some(c) })
+    .filter(|&c| c != '\0')
 }
 
 /// Determine whether Shift is effectively applied to *this* key, taking
