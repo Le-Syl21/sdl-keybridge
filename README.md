@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/sdl-keybridge.svg)](https://crates.io/crates/sdl-keybridge)
 [![Docs.rs](https://docs.rs/sdl-keybridge/badge.svg)](https://docs.rs/sdl-keybridge)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+[![Discord](https://img.shields.io/badge/Discord-Le--Syl21%20Tools-5865F2?logo=discord&logoColor=white)](https://discord.gg/T37DYHmt2j)
 
 **The universal Rosetta Stone for SDL keyboards.**
 
@@ -15,6 +16,12 @@ platform combinations supported by SDL.
 No other Rust crate combines **layout-awareness** (AZERTY/QWERTZ/JCUKEN),
 **i18n of named keys** (Escape → Échap/Esc/エスケープ), and a
 **cross-layout binding bridge** via scancode as a universal pivot.
+
+## Community & support
+
+Questions, bug reports, beta testing, or just want to chat? Join the Discord:
+
+[![Discord](https://img.shields.io/badge/Discord-Le--Syl21%20Tools-5865F2?logo=discord&logoColor=white)](https://discord.gg/T37DYHmt2j)
 
 ## Philosophy: Rosette, not Champollion
 

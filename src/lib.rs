@@ -139,6 +139,10 @@
 //!   (JSON, INI, RON, binary, …).
 //! - **`sdl2` / `sdl3` feature flags.** A single API on primitive types
 //!   covers both versions.
+//!
+//! # Community & support
+//!
+//! Questions, bugs, beta testing — join the Discord: <https://discord.gg/T37DYHmt2j>
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
