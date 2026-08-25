@@ -1,6 +1,6 @@
 [package]
 name = "sdl-keybridge"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Le-Syl21 <sylvain.gargasson@gmail.com>"]
@@ -64,7 +64,7 @@ vi = []
 [dependencies]
 
 [build-dependencies]
-quick-xml = { version = "0.38", default-features = false }
+quick-xml = { version = "0.42", default-features = false }
 
 [dev-dependencies]
 

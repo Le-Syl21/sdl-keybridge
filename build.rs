@@ -17,6 +17,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use quick_xml::events::Event;
+use quick_xml::XmlVersion;
+
+/// CLDR keyboard data is XML 1.0 and carries no version declaration, which is
+/// exactly the case `Implicit1_0` describes. quick-xml 0.42 asks for it because
+/// attribute-value normalisation differs between 1.0 and 1.1.
+const XML10: XmlVersion = XmlVersion::Implicit1_0;
 use quick_xml::reader::Reader;
 
 const ISO_MAP: &[(&str, &str)] = &[
@@ -219,37 +225,37 @@ fn parse_file(path: &Path, platform_dir: &str) -> Option<LayoutData> {
         let event = reader.read_event_into(&mut buf);
         match event {
             Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => match e.name().as_ref() {
-                b"keyboard" => {
+                "keyboard" => {
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"locale" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "locale" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 locale = v.into_owned();
                             }
                         }
                     }
                 }
-                b"name" => {
+                "name" => {
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"value" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "value" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 display_name = v.into_owned();
                             }
                         }
                     }
                 }
-                b"keyMap" => {
+                "keyMap" => {
                     in_keymap = true;
                     let mut modifiers: Option<String> = None;
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"modifiers" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "modifiers" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 modifiers = Some(v.into_owned());
                             }
                         }
                     }
                     current_level = classify(modifiers.as_deref());
                 }
-                b"map" if in_keymap => {
+                "map" if in_keymap => {
                     let Some(level) = current_level else {
                         continue;
                     };
@@ -257,13 +263,13 @@ fn parse_file(path: &Path, platform_dir: &str) -> Option<LayoutData> {
                     let mut to: Option<String> = None;
                     for attr in e.attributes().flatten() {
                         match attr.key.as_ref() {
-                            b"iso" => {
-                                if let Ok(v) = attr.unescape_value() {
+                            "iso" => {
+                                if let Ok(v) = attr.normalized_value(XML10) {
                                     iso = Some(v.into_owned());
                                 }
                             }
-                            b"to" => {
-                                if let Ok(v) = attr.unescape_value() {
+                            "to" => {
+                                if let Ok(v) = attr.normalized_value(XML10) {
                                     to = Some(v.into_owned());
                                 }
                             }
@@ -292,7 +298,7 @@ fn parse_file(path: &Path, platform_dir: &str) -> Option<LayoutData> {
                 }
                 _ => {}
             },
-            Ok(Event::End(ref e)) if e.name().as_ref() == b"keyMap" => {
+            Ok(Event::End(ref e)) if e.name().as_ref() == "keyMap" => {
                 in_keymap = false;
                 current_level = None;
             }
@@ -527,24 +533,24 @@ fn load_v3_keys(path: &Path, out: &mut std::collections::HashMap<String, Option<
     loop {
         let ev = reader.read_event_into(&mut buf);
         match ev {
-            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) if e.name().as_ref() == b"key" => {
+            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) if e.name().as_ref() == "key" => {
                 let mut id: Option<String> = None;
                 let mut output: Option<String> = None;
                 let mut is_gap = false;
                 for attr in e.attributes().flatten() {
                     match attr.key.as_ref() {
-                        b"id" => {
-                            if let Ok(v) = attr.unescape_value() {
+                        "id" => {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 id = Some(v.into_owned());
                             }
                         }
-                        b"output" => {
-                            if let Ok(v) = attr.unescape_value() {
+                        "output" => {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 output = Some(v.into_owned());
                             }
                         }
-                        b"gap" => {
-                            if let Ok(v) = attr.unescape_value() {
+                        "gap" => {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 if v == "true" {
                                     is_gap = true;
                                 }
@@ -612,29 +618,29 @@ fn parse_v3_file(
         let ev = reader.read_event_into(&mut buf);
         match ev {
             Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => match e.name().as_ref() {
-                b"keyboard3" => {
+                "keyboard3" => {
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"locale" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "locale" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 locale = v.into_owned();
                             }
                         }
                     }
                 }
-                b"info" => {
+                "info" => {
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"name" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "name" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 display_name = v.into_owned();
                             }
                         }
                     }
                 }
-                b"layers" => {
+                "layers" => {
                     let mut form_str = String::new();
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"formId" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "formId" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 form_str = v.into_owned();
                             }
                         }
@@ -645,11 +651,11 @@ fn parse_v3_file(
                         picked_form = current_form;
                     }
                 }
-                b"layer" => {
+                "layer" => {
                     let mut mods_str: Option<String> = None;
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"modifiers" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "modifiers" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 mods_str = Some(v.into_owned());
                             }
                         }
@@ -657,7 +663,7 @@ fn parse_v3_file(
                     current_level = classify(mods_str.as_deref());
                     row_idx = 0;
                 }
-                b"row" => {
+                "row" => {
                     // Only process rows under the picked form.
                     let Some(form) = current_form else {
                         continue;
@@ -670,8 +676,8 @@ fn parse_v3_file(
                     };
                     let mut keys_attr = String::new();
                     for attr in e.attributes().flatten() {
-                        if attr.key.as_ref() == b"keys" {
-                            if let Ok(v) = attr.unescape_value() {
+                        if attr.key.as_ref() == "keys" {
+                            if let Ok(v) = attr.normalized_value(XML10) {
                                 keys_attr = v.into_owned();
                             }
                         }
@@ -701,10 +707,10 @@ fn parse_v3_file(
                 }
                 _ => {}
             },
-            Ok(Event::End(ref e)) if e.name().as_ref() == b"layers" => {
+            Ok(Event::End(ref e)) if e.name().as_ref() == "layers" => {
                 current_form = None;
             }
-            Ok(Event::End(ref e)) if e.name().as_ref() == b"layer" => {
+            Ok(Event::End(ref e)) if e.name().as_ref() == "layer" => {
                 current_level = None;
             }
             Ok(Event::Eof) => break,
